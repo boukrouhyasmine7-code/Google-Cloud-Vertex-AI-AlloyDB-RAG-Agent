@@ -1,0 +1,82 @@
+# ============================================================
+# Local Development Stack
+# Replicates: AlloyDB (PostgreSQL 15 + pgvector) on GCP
+#
+# GCP Mapping:
+#   alloydb-local-replica  →  Cloud AlloyDB Cluster (Primary)
+#   pgadmin                →  AlloyDB Studio / Cloud Console
+#
+# AlloyDB is 100% PostgreSQL-wire-protocol compatible.
+# Every query in this stack executes identically against
+# a live AlloyDB instance in production.
+# ============================================================
+
+version: "3.9"
+
+networks:
+  alloydb-net:
+    driver: bridge
+
+volumes:
+  alloydb-data:
+    name: alloydb_pgvector_data
+
+services:
+
+  # ----------------------------------------------------------
+  # AlloyDB Local Replica
+  # Maps to: Google Cloud AlloyDB (Primary Instance)
+  # Features mirrored:
+  #   - pgvector extension  → AlloyDB integrated vector store
+  #   - SCANN indexing      → AlloyDB ScaNN ANN index (schema.sql)
+  #   - HTAP workload       → combined OLTP + analytical queries
+  # ----------------------------------------------------------
+  alloydb-local-replica:
+    image: pgvector/pgvector:pg16
+    container_name: alloydb-local-replica
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${ALLOYDB_USER:-alloydb_admin}
+      POSTGRES_PASSWORD: ${ALLOYDB_PASSWORD:-alloydb_local_secret}
+      POSTGRES_DB: ${ALLOYDB_DATABASE:-vertex_rag_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${ALLOYDB_PORT:-5432}:5432"
+    volumes:
+      - alloydb-data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    networks:
+      - alloydb-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ALLOYDB_USER:-alloydb_admin} -d ${ALLOYDB_DATABASE:-vertex_rag_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    labels:
+      com.google.cloud.service: "AlloyDB"
+      com.google.cloud.environment: "local-replica"
+      com.google.cloud.region: "us-central1"
+
+  # ----------------------------------------------------------
+  # pgAdmin — Database Management UI
+  # Maps to: AlloyDB Studio in Cloud Console
+  # ----------------------------------------------------------
+  alloydb-studio:
+    image: dpage/pgadmin4:latest
+    container_name: alloydb-studio
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@vertex-rag.dev}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - alloydb-net
+    depends_on:
+      alloydb-local-replica:
+        condition: service_healthy
+    labels:
+      com.google.cloud.service: "AlloyDB Studio"
+      com.google.cloud.environment: "local-replica"

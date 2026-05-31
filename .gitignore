@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+*.env.local
+
+# GCP credentials — NEVER commit
+*.json
+service-account-key*.json
+gcloud-credentials*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker volumes
+pgdata/
+
+# OS
+.DS_Store
+Thumbs.db

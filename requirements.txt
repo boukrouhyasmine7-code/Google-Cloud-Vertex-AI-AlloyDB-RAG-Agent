@@ -1,0 +1,33 @@
+# ============================================================
+# Google Cloud AI Stack — Dependency Manifest
+# Architecture: Vertex AI Agent Platform + AlloyDB (pgvector)
+# ============================================================
+
+# --- Google Cloud AI Platform & Generative AI ---
+google-cloud-aiplatform>=1.60.0        # Vertex AI SDK (Agent Platform, embeddings, function calling)
+google-generativeai>=0.7.0             # Google GenAI SDK (Gemini Pro / Flash)
+google-auth>=2.29.0                    # GCP authentication (ADC / Service Accounts)
+google-auth-httplib2>=0.2.0
+
+# --- AlloyDB / PostgreSQL + pgvector (Local Replica) ---
+psycopg2-binary>=2.9.9                 # PostgreSQL driver (AlloyDB-compatible wire protocol)
+pgvector>=0.3.2                        # pgvector Python client for vector similarity search
+sqlalchemy>=2.0.30                     # ORM layer for AlloyDB schema management
+
+# --- API Layer ---
+fastapi>=0.111.0                       # REST API framework for Agent Platform endpoint
+uvicorn[standard]>=0.29.0             # ASGI server
+pydantic>=2.7.0                        # Request/response validation (Vertex AI compatible schemas)
+pydantic-settings>=2.2.1              # Settings management via env vars / .env files
+
+# --- Utilities ---
+python-dotenv>=1.0.1                   # Environment variable management
+tenacity>=8.3.0                        # Retry logic for Vertex AI API calls
+structlog>=24.1.0                      # Structured JSON logging (Cloud Logging compatible)
+rich>=13.7.1                           # Terminal output for local development
+httpx>=0.27.0                          # Async HTTP client
+
+# --- Development & Testing ---
+pytest>=8.2.0
+pytest-asyncio>=0.23.6
+httpx>=0.27.0                          # Used by TestClient in pytest
