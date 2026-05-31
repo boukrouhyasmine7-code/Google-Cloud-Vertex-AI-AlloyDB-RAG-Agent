@@ -37,11 +37,13 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 from app.agent_platform import GeminiAgent, get_or_create_session
 from app.config import Settings, get_settings
 from app.database import close_pool, get_db_connection, release_db_connection
-
+app = FastAPI()
 log = structlog.get_logger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -330,3 +332,9 @@ if __name__ == "__main__":
         reload=settings.api_reload,
         log_level=settings.log_level,
     )
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    @app.get("/")
+    async def read_index():
+        return FileResponse("static/index.html")

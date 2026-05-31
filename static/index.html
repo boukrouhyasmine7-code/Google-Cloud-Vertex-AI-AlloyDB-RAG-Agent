@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cymbal Air — AI Travel Assistant</title>
+    <!-- Streamlit apps look great because of clean sans-serif typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --st-bg: #ffffff; /* Crisp white background */
+            --st-secondary-bg: #f8f9fa; /* Soft grey background container */
+            --st-text: #31333f; /* Streamlit's exact charcoal text color */
+            --st-border: #e6e9ef; /* Subtle border framing elements */
+            --st-pink-accent: #ff4b4b; /* The signature Streamlit pink/coral brand color */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background-color: var(--st-bg);
+            color: var(--st-text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- The Signature Streamlit Pink Top Accent Line --- */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background-color: var(--st-pink-accent);
+            z-index: 999;
+        }
+
+        /* --- App Header Layout --- */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 40px;
+            background-color: var(--st-bg);
+            border-bottom: 1px solid var(--st-border);
+            margin-top: 6px; /* Space for the accent line */
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* Gradient logo layout adapted from image_981c03.png */
+        .brand-logo-circle {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #f3a0b8 0%, #a67bc5 50%, #3f3175 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo-circle span {
+            color: white;
+            font-size: 20px;
+        }
+
+        .brand-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--st-text);
+            letter-spacing: -0.5px;
+        }
+
+        /* --- Main Content Split View --- */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            background-color: var(--st-bg);
+        }
+
+        /* Left Sidebar - Typical for Streamlit layouts */
+        .sidebar {
+            width: 280px;
+            background-color: var(--st-secondary-bg);
+            border-right: 1px solid var(--st-border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #555867;
+        }
+
+        /* Chat Window Area */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 24px;
+        }
+
+        .messages-display {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Chat Message Design */
+        .message-wrapper {
+            display: flex;
+            gap: 16px;
+        }
+
+        .message-wrapper.user {
+            flex-direction: row-reverse;
+        }
+
+        .avatar-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px; /* Blocky avatar layout like modern interfaces */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user .avatar-box {
+            background-color: var(--st-pink-accent);
+            color: white;
+        }
+
+        .assistant .avatar-box {
+            background-color: #2b1f54;
+            color: white;
+        }
+
+        .message-bubble {
+            background-color: var(--st-secondary-bg);
+            border: 1px solid var(--st-border);
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 80%;
+        }
+
+        .user .message-bubble {
+            background-color: #fff4f4; /* Subtle warm pink tone for the user bubble */
+            border-color: #fdd2d2;
+        }
+
+        /* --- Dynamic Flight Output Component Card --- */
+        .flight-card {
+            margin-top: 14px;
+            background: #ffffff;
+            border: 1px solid var(--st-border);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .flight-card-header {
+            background-color: var(--st-secondary-bg);
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--st-border);
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 13px;
+            color: #555867;
+        }
+
+        .flight-card-body {
+            padding: 20px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .airport-info .iata {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--st-text);
+        }
+
+        .airport-info .time {
+            font-size: 14px;
+            color: #737a8d;
+        }
+
+        .flight-path {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            margin: 0 30px;
+        }
+
+        .duration-label {
+            font-size: 12px;
+            background: #ffffff;
+            padding: 2px 8px;
+            color: #737a8d;
+            position: relative;
+            z-index: 5;
+            border: 1px solid var(--st-border);
+            border-radius: 10px;
+        }
+
+        .line-graphic {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            border-top: 1px solid var(--st-border);
+            z-index: 1;
+        }
+
+        .price-badge {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--st-text);
+        }
+
+        /* --- User Chat Input Section --- */
+        .input-wrapper {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--st-border);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            color: var(--st-text);
+            background-color: var(--st-secondary-bg);
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--st-pink-accent);
+            background-color: #ffffff;
+        }
+
+        .input-wrapper button {
+            background-color: var(--st-pink-accent);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .input-wrapper button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar Layout -->
+    <header>
+        <div class="brand-container">
+            <!-- Smooth icon mapping visual design from image_981c03.png -->
+            <div class="brand-logo-circle">
+                <span>✈️</span>
+            </div>
+            <div class="brand-title">Cymbal Air</div>
+        </div>
+    </header>
+
+    <!-- Content Workspace -->
+    <div class="main-layout">
+        
+        <!-- Sidebar Navigation Simulation Panel -->
+        <div class="sidebar">
+            <div>
+                <div class="sidebar-title">Model Configuration</div>
+                <p style="font-size: 14px; margin-top: 8px; color:#555867;">gemini-2.5-flash</p>
+            </div>
+            <div style="margin-top: auto; border-top: 1px solid var(--st-border); padding-top: 16px;">
+                <p style="font-size: 12px; color: #737a8d;">Running locally via standard Colab Proxy port routing</p>
+            </div>
+        </div>
+
+        <!-- Central Conversation Core -->
+        <div class="chat-container">
+            <div class="messages-display" id="chatArea">
+                
+                <!-- Assistant Opening System Message -->
+                <div class="message-wrapper assistant">
+                    <div class="avatar-box">AI</div>
+                    <div class="message-bubble">
+                        Welcome to the Cymbal Air demonstration app! Ask me about flights or airport amenities to see data science operations in action.
+                    </div>
+                </div>
+
+                <!-- User Query Message -->
+                <div class="message-wrapper user">
+                    <div class="avatar-box">You</div>
+                    <div class="message-bubble">
+                        Are there any flights from Paris to New York?
+                    </div>
+                </div>
+
+                <!-- Assistant Response with Flight Results Card -->
+                <div class="message-wrapper assistant">
+                    <div class="avatar-box">AI</div>
+                    <div class="message-bubble" style="width: 100%;">
+                        Found flight options matching your route. Here is the operational information retrieved from the database:
+                        
+                        <!-- Modular Flight Results Presentation Layout -->
+                        <div class="flight-card">
+                            <div class="flight-card-header">
+                                <span>FLIGHT ID: GA-102</span>
+                                <span style="color: #24b273;">● AVAILABLE</span>
+                            </div>
+                            <div class="flight-card-body">
+                                <div class="airport-info">
+                                    <div class="iata">CDG</div>
+                                    <div class="time">10:30 AM</div>
+                                </div>
+                                <div class="flight-path">
+                                    <span class="duration-label">8h 15m (Direct)</span>
+                                    <div class="line-graphic"></div>
+                                </div>
+                                <div class="airport-info" style="text-align: right;">
+                                    <div class="iata">JFK</div>
+                                    <div class="time">01:45 PM</div>
+                                </div>
+                                <div style="margin-left: 24px;">
+                                    <div class="price-badge">$450.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Chat Input Row -->
+            <div class="input-wrapper">
+                <input type="text" placeholder="Type a message..." id="userInput">
+                <button id="submitBtn">Submit</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- UI Event Controller Script Block -->
+    <script>
+        const userInput = document.getElementById('userInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const chatArea = document.getElementById('chatArea');
+
+        function sendUserMessage() {
+            const text = userInput.value.trim();
+            if (text !== "") {
+                const msg = document.createElement('div');
+                msg.className = 'message-wrapper user';
+                msg.innerHTML = `<div class="avatar-box">You</div><div class="message-bubble">${text}</div>`;
+                chatArea.appendChild(msg);
+                userInput.value = "";
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+        }
+
+        submitBtn.addEventListener('click', sendUserMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendUserMessage();
+        });
+    </script>
+</body>
+</html>

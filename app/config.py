@@ -45,8 +45,8 @@ class Settings(BaseSettings):
         description="Vertex AI / AlloyDB region.",
     )
     gemini_model: str = Field(
-        default="gemini-1.5-pro",
-        description="Gemini model for the Agent Platform. Options: gemini-1.5-pro, gemini-1.5-flash",
+        default="gemini-2.5-flash",
+        description="Gemini model for the Agent Platform. Options: gemini-2.5-flash, gemini-1.5-flash",
     )
     embedding_model: str = Field(
         default="text-embedding-004",
@@ -88,7 +88,7 @@ class Settings(BaseSettings):
     @field_validator("gemini_model")
     @classmethod
     def validate_gemini_model(cls, v: str) -> str:
-        allowed = {"gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash-exp"}
+        allowed = {"gemini-2.5-flash", "gemini-1.5-flash", "gemini-2.0-flash-exp"}
         if v not in allowed:
             raise ValueError(f"gemini_model must be one of {allowed}, got: {v!r}")
         return v

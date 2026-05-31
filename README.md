@@ -402,7 +402,7 @@ Send a message to the Gemini Pro agent. The agent autonomously executes AlloyDB 
   "session_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "response": "I found 2 flights from San Francisco (SFO) to New York JFK:\n\n✈ GA201 · Google Air\n  Departure: 09:15 AM UTC · Arrival: 2:45 PM UTC\n  Duration: 5h 30m · Price: $389.00 · 8 seats left\n  Aircraft: Boeing 757-200\n\nWould you like me to check amenities at SFO or JFK?",
   "tool_calls_made": 1,
-  "model": "gemini-1.5-pro",
+  "model": "gemini-2.5-flash",
   "latency_ms": 1243.7
 }
 ```
@@ -423,7 +423,7 @@ Readiness probe — verifies AlloyDB connectivity before accepting traffic.
 {
   "status": "ready",
   "alloydb": "connected",
-  "gemini_model": "gemini-1.5-pro",
+  "gemini_model": "gemini-2.5-flash",
   "embedding_model": "text-embedding-004"
 }
 ```
@@ -463,7 +463,7 @@ gcloud run deploy vertex-rag-agent \
   --platform managed \
   --allow-unauthenticated \
   --set-env-vars GOOGLE_CLOUD_PROJECT=YOUR_PROJECT \
-  --set-env-vars GEMINI_MODEL=gemini-1.5-pro \
+  --set-env-vars GEMINI_MODEL=gemini-2.5-flash \
   --set-env-vars VERTEX_AI_LOCATION=us-central1 \
   --set-secrets ALLOYDB_PASSWORD=alloydb-password:latest \
   --service-account vertex-rag-sa@YOUR_PROJECT.iam.gserviceaccount.com
@@ -505,7 +505,7 @@ WITH (num_leaves = 500, quantizer = 'sq8');
 |---|---|---|
 | `GOOGLE_CLOUD_PROJECT` | `local-dev-project` | GCP project for Vertex AI API calls |
 | `VERTEX_AI_LOCATION` | `us-central1` | Vertex AI / AlloyDB region |
-| `GEMINI_MODEL` | `gemini-1.5-pro` | `gemini-1.5-pro` or `gemini-1.5-flash` |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | `gemini-2.5-flash` or `gemini-1.5-flash` |
 | `EMBEDDING_MODEL` | `text-embedding-004` | Vertex AI embedding model |
 | `ALLOYDB_HOST` | `localhost` | AlloyDB instance IP or hostname |
 | `ALLOYDB_PORT` | `5432` | PostgreSQL port |
